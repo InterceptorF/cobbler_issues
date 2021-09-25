@@ -1,0 +1,70 @@
+
+[root@cos-pxe-00 ~]# cobbler system report --name=co-sf-pe-095
+Name                           : co-sf-pe-095
+TFTP Boot Files                : {}
+Comment                        :
+Enable gPXE?                   : False
+Fetchable Files                : {}
+Gateway                        :
+Hostname                       : co-sf-pe-095
+Image                          :
+IPv6 Autoconfiguration         : False
+IPv6 Default Device            :
+Kernel Options                 : {}
+Kernel Options (Post Install)  : {}
+Kickstart                      : /var/lib/cobbler/kickstarts/es-5.2.0-server-centos-r5-x86_64.ks
+Kickstart Metadata             : {}
+LDAP Enabled                   : False
+LDAP Management Type           : authconfig
+Management Classes             : []
+Management Parameters          : <<inherit>>
+Monit Enabled                  : False
+Name Servers                   : []
+Name Servers Search Path       : []
+Netboot Enabled                : True
+Owners                         : ['admin']
+Power Management Address       :
+Power Management ID            :
+Power Management Password      :
+Power Management Type          : apc
+Power Management Username      :
+Profile                        : rh8_3-x86_64
+Internal proxy                 : <<inherit>>
+Red Hat Management Key         : <<inherit>>
+Red Hat Management Server      : <<inherit>>
+Repos Enabled                  : False
+Server Override                : <<inherit>>
+Status                         : development
+Template Files                 : {}
+Virt Auto Boot                 : 0
+Virt CPUs                      : <<inherit>>
+Virt Disk Driver Type          : <<inherit>>
+Virt File Size(GB)             : <<inherit>>
+Virt Path                      : <<inherit>>
+Virt PXE Boot                  : 0
+Virt RAM (MB)                  : <<inherit>>
+Virt Type                      : xenpv
+Interface =====                : eth0
+Bonding Opts                   :
+Bridge Opts                    :
+CNAMES                         : []
+InfiniBand Connected Mode      : False
+DHCP Tag                       :
+DNS Name                       : co-sf-pe-095
+Per-Interface Gateway          :
+Master Interface               :
+Interface Type                 :
+IP Address                     : 10.36.28.95
+IPv6 Address                   :
+IPv6 Default Gateway           :
+IPv6 MTU                       :
+IPv6 Prefix                    :
+IPv6 Secondaries               : []
+IPv6 Static Routes             : []
+MAC Address                    : 00:0c:29:84:c0:87
+Management Interface           : False
+MTU                            :
+Subnet Mask                    :
+Static                         : False
+Static Routes                  : []
+Virt Bridge                    : xenbr0
