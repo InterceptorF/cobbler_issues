@@ -1,0 +1,182 @@
+$SNIPPET('local/ksstamp')
+# Install OS instead of upgrade
+install
+
+# Use CDROM installation media
+url --url=$tree
+
+# New on el7
+eula --agreed
+
+# Root password
+rootpw --iscrypted $default_password_crypted
+
+# System keyboard
+keyboard us
+
+# System language
+lang en_US.UTF-8
+
+# SELinux configuration
+selinux --disabled
+
+# Firewall configuration
+firewall --disabled
+
+# Installation logging level
+logging --level=info
+
+# Reboot after installation
+$SNIPPET('local/reboot')
+
+$yum_repo_stanza
+
+# Configure timezone
+timezone --utc America/Denver
+
+# System bootloader configuration
+bootloader --location=mbr --append="crashkernel=0M-32G:512M,32G-:1024M transparent_hugepage=never" --timeout=5
+
+# Clear the Master Boot Record
+zerombr
+
+
+
+####
+# Pre-install
+%pre --erroronfail --interpreter /bin/bash --log=/tmp/pre-install.log
+
+$SNIPPET('local/log_ks_pre')
+$SNIPPET('local/kickstart_start')
+
+# Set common variables
+NODE_TYPE=\$(get_node_type)
+IB_TYPE=\$(get_ib_type)
+
+echo "Starting Kickstart Pre-Installation..."
+echo "Node_type: \${NODE_TYPE}"
+
+
+echo "Creating the partition file"
+# Create partition template file
+PARTITION_TEMPLATE="ignoredisk --only-use={dev}
+clearpart --all --initlabel --drives={dev}
+part /boot --fstype ext4 --asprimary --ondisk={dev} --size=512
+part pv.2 --size=4096 --ondisk={dev} --grow --maxsize=32768
+part pv.3 --size=8192 --ondisk={dev} --grow
+volgroup VolGroup00 --pesize=32768 pv.2
+volgroup VolGroup01 --pesize=8192 pv.3
+logvol / --fstype ext4 --name=LogVol01 --vgname=VolGroup00 --size=2048 --grow --maxsize=16384
+logvol /var --fstype ext4 --name=LogVol02 --vgname=VolGroup01 --percent=30
+logvol /scratch --fstype ext4 --name=LogVol03 --vgname=VolGroup01 --percent=70
+logvol swap --fstype swap --name=LogVol04 --vgname=VolGroup00 --size=2048 --grow --maxsize=16384"
+
+
+chvt 1
+exec </dev/tty1 2>/dev/tty1 >/dev/tty1
+
+
+##################
+# Somehow I need to delete all partions and set the Installation Destination to: VMware_Virtual_SATA_Hard_Drive_00000000000000000001
+# sda / 992.5 KiB free   5000c29a58416d0f
+#
+##################
+# Somehow I need to set the base repository to 10.36.16.11/cobbler/ks_mirror/rh8_3-x86_64/BaseOS
+# It is currently showing 10.36.16.11/cobbler/repo_mirror/rh8_3-x86_64
+#
+# so that is set in the file  /var/www/cobbler/repo_mirror/rh8_3-x86_64/config.repo
+# and has been updated. 
+#
+##################
+# Somehow I need to set Software Selection to Minimal Install.
+#
+#
+##################
+# Somehow I need to Start the Installation
+#
+#
+##################
+
+
+
+# Make common variables available in post section
+cat <<EOF > /tmp/isolinux-vars
+NODE_TYPE=\${NODE_TYPE}
+IB_TYPE=\${IB_TYPE}
+EOF
+
+%end
+
+
+#####
+
+
+# Post-install outside the chroot
+%post --nochroot --log=/root/post-nochroot-install.log
+$SNIPPET('local/log_ks_post_nochroot')
+
+source /tmp/isolinux-vars
+
+# Configure ifcfg scripts
+configure_network /mnt/sysimage/etc/sysconfig/network-scripts/
+
+echo "Starting Kickstart Post-nochroot-Installation..."
+echo "Node_type: \${NODE_TYPE}"
+
+# Make common variables available in chrooted %post section
+cp /tmp/isolinux-vars /mnt/sysimage/tmp/isolinux-vars
+
+%end
+#####
+
+#####
+# Post-install
+%post --interpreter /bin/bash --log=/root/post-install.log
+
+# Load variables
+source /tmp/isolinux-vars
+
+# Write file contents into log file
+cat >> /root/pre-install.log << "EOF"
+
+# /tmp/pre-install.log
+%include /tmp/pre-install.log
+
+%include /tmp/isolinux-vars
+EOF
+
+echo "Starting Kickstart Post-Installation..."
+echo "Node_type: \${NODE_TYPE}"
+echo "IB_type: \${IB_TYPE}"
+
+
+
+REPO_NAME="rh83.repo"
+mkdir \${REPO_NAME}
+mv output/RPMS/* \${REPO_NAME}
+
+PATH_TO_REPO_FILE="\$(realpath \${REPO_NAME})"
+
+baseurl=file://\${PATH_TO_REPO_FILE}
+enabled=1
+gpgcheck=0
+EOF
+
+cp rh83.repo /etc/yum.repos.d/
+
+echo " --- Start installing \${REPO_NAME} drivers --- "
+yum makecache
+
+yum -y --disablerepo=* --enablerepo=rh83.repo install \*
+echo " --- End of installation \${REPO_NAME} drivers --- "
+
+rm -rf output
+rm -rf \${REPO_NAME
+
+
+if [ "\${IB_TYPE}" = "mellanox" ]; then
+    sed --in-place -e 's/SET_IPOIB_CM=.*/SET_IPOIB_CM=no/' /etc/infiniband/openib.conf
+fi
+
+%end
+####
