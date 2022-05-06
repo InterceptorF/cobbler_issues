@@ -1,0 +1,25 @@
+# rh8_3-x86_64 Kickstart for clean Server with GUI install, no post install scripts. 
+# 
+lang en_US
+keyboard us
+timezone America/New_York --isUtc
+rootpw $2b$10$5l1Dk1USdjKSpQX2sDe1reMKVwj3WUQb0wt.O4xCI.GjARitAX7Ea --iscrypted
+#platform x86, AMD64, or Intel EM64T
+reboot 
+url --url=http://10.36.16.11/cblr/ks_mirror/rh8_3-x86_64/
+# part biosboot --fstype=biosboot --size=1
+bootloader --location=mbr --append="rhgb quiet crashkernel=auto"
+zerombr
+clearpart --all --initlabel
+autopart --type=lvm
+
+
+auth --passalgo=sha512 --useshadow
+selinux --disabled
+firewall --disabled
+firstboot --disable
+
+%packages
+@^graphical-server-environment
+@web-server
+%end
